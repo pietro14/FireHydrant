@@ -3,7 +3,7 @@ FireHydrant Benchmarks
 
 Some benchmark tasks completed with ffNtuples with [Coffea](https://github.com/CoffeaTeam/coffea).
 
-1. [ ] Plot leptonJets multiplicity of all events.
+1. [x] Plot leptonJets multiplicity of all events.
 2. [ ] Plot leading and subleading leptonJet pair deltaPhi for *mXX-100_mA-0p25* signals.
 3. [ ] Matching leptonJets with gen dark photons (pid=32) by `deltaRCut=0.3`, overlay matched and unmatched leptonJets pT distribution for *mXX-100_mA-0p25* signals.
 4. [ ] Overlay leading and subleading leptonJet pair invariant mass for *all* signals, in [0, 200] GeV and [0, 1200] GeV range.

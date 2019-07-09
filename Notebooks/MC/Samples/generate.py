@@ -131,6 +131,9 @@ BKG_XSEC = dict(
 )
 
 
+EOSPATH_SIG = '/store/group/lpcmetx/MCSIDM/ffNtuple/2018/CRAB_PrivateMC/' # private signal MC
+
+
 def generate_background_json():
 
     generated = dict()
@@ -231,10 +234,40 @@ def clean_background_json():
     with open("backgrounds_nonempty.json", "w") as outf:
         outf.write(json.dumps(bkgfilelist, indent=4))
 
+        
+def generate_signal_json():
+    """generate private signal file list json"""
+    paramsubdirs = eosls(EOSPATH_SIG)
+    json_4mu, json_2mu2e = {}, {}
+    for subdir in paramsubdirs:
+        if '4Mu' in subdir:
+            key = subdir.replace('SIDM_BsTo2DpTo4Mu_', '').split('_ctau')[0].replace('MBs', 'mXX').replace('MDp', 'mA')
+            timestampdirs = eosls(join(EOSPATH_SIG, subdir))
+            timestampdirs = sorted(timestampdirs, key=lambda x: datetime.strptime(x, "%y%m%d_%H%M%S"))
+            latest = join(EOSPATH_SIG, subdir, timestampdirs[-1])
+            json_4mu[key] = [f for f in eosfindfile(latest) if '/failed/' not in f]
+        if '2Mu2e' in subdir:
+            key = subdir.replace('SIDM_BsTo2DpTo2Mu2e_', '').split('_ctau')[0].replace('MBs', 'mXX').replace('MDp', 'mA')
+            timestampdirs = eosls(join(EOSPATH_SIG, subdir))
+            timestampdirs = sorted(timestampdirs, key=lambda x: datetime.strptime(x, "%y%m%d_%H%M%S"))
+            latest = join(EOSPATH_SIG, subdir, timestampdirs[-1])
+            json_2mu2e[key] = [f for f in eosfindfile(latest) if '/failed/' not in f]
+    
+    with open('signal_4mu.json', 'w') as outf:
+        outf.write(json.dumps(json_4mu, indent=4))
+    with open('signal_2mu2e.json', 'w') as outf:
+        outf.write(json.dumps(json_2mu2e, indent=4))
+
+
 
 if __name__ == "__main__":
 
+    import sys
     ## Here we are only keeping the most recent submission batch
-    generate_background_json()
-    generate_background_scale()
-    clean_background_json()
+    if sys.argv[1]=='bkg':
+        generate_background_json()
+        generate_background_scale()
+        clean_background_json()
+    
+    if sys.argv[1]=='sig':
+        generate_signal_json()
