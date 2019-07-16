@@ -295,6 +295,9 @@ hftagscore_DeepCSV_b
 hftagscore_DeepCSV_cl
 hftagscore_DeepCSV_cb
 hftagscore_CSVv2_b
+hftagscore_DeepFlavour_b
+hftagscore_DeepFlavour_cl
+hftagscore_DeepFlavour_cb
 ```
 
 ## muonTiming
