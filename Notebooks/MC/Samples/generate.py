@@ -131,7 +131,7 @@ BKG_XSEC = dict(
 )
 
 
-EOSPATH_SIG = '/store/group/lpcmetx/MCSIDM/ffNtuple/2018/CRAB_PrivateMC/' # private signal MC
+EOSPATH_SIG = '/store/group/lpcmetx/SIDM/ffNtuple/2018/CRAB_PrivateMC/' # private signal MC
 
 
 def generate_background_json():
@@ -234,7 +234,7 @@ def clean_background_json():
     with open("backgrounds_nonempty.json", "w") as outf:
         outf.write(json.dumps(bkgfilelist, indent=4))
 
-        
+
 def generate_signal_json():
     """generate private signal file list json"""
     paramsubdirs = eosls(EOSPATH_SIG)
@@ -252,7 +252,7 @@ def generate_signal_json():
             timestampdirs = sorted(timestampdirs, key=lambda x: datetime.strptime(x, "%y%m%d_%H%M%S"))
             latest = join(EOSPATH_SIG, subdir, timestampdirs[-1])
             json_2mu2e[key] = [f for f in eosfindfile(latest) if '/failed/' not in f]
-    
+
     with open('signal_4mu.json', 'w') as outf:
         outf.write(json.dumps(json_4mu, indent=4))
     with open('signal_2mu2e.json', 'w') as outf:
@@ -268,6 +268,6 @@ if __name__ == "__main__":
         generate_background_json()
         generate_background_scale()
         clean_background_json()
-    
+
     if sys.argv[1]=='sig':
         generate_signal_json()
