@@ -8,31 +8,7 @@ import sys
 import time
 
 OUTPUT_FILE = "/publicweb/w/wsi/public/lpcdm/backgroundsummary.txt"
-
-DATASET_GRP = dict(
-    ttWJets=[
-        "/ttWJets_TuneCP5_13TeV_madgraphMLM_pythia8/RunIIAutumn18DRPremix-102X_upgrade2018_realistic_v15_ext1-v2/AODSIM"
-    ],
-    TT=[
-        "/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18DRPremix-102X_upgrade2018_realistic_v15-v1/AODSIM",
-        "/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18DRPremix-102X_upgrade2018_realistic_v15-v1/AODSIM",
-        "/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18DRPremix-102X_upgrade2018_realistic_v15-v1/AODSIM",
-    ],
-    singleTop=[
-        "/ST_tW_top_5f_inclusiveDecays_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18DRPremix-102X_upgrade2018_realistic_v15_ext1-v1/AODSIM",
-        "/ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18DRPremix-102X_upgrade2018_realistic_v15_ext1-v1/AODSIM",
-    ],
-    WJets=[
-        "/WJetsToLNu_HT-70To100_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18DRPremix-102X_upgrade2018_realistic_v15-v1/AODSIM",
-        "/WJetsToLNu_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18DRPremix-102X_upgrade2018_realistic_v15-v1/AODSIM",
-        "/WJetsToLNu_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18DRPremix-102X_upgrade2018_realistic_v15-v1/AODSIM",
-        "/WJetsToLNu_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18DRPremix-102X_upgrade2018_realistic_v15-v1/AODSIM",
-        "/WJetsToLNu_HT-600To800_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18DRPremix-102X_upgrade2018_realistic_v15-v1/AODSIM",
-        "/WJetsToLNu_HT-800To1200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18DRPremix-102X_upgrade2018_realistic_v15-v1/AODSIM",
-        "/WJetsToLNu_HT-1200To2500_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18DRPremix-102X_upgrade2018_realistic_v15-v1/AODSIM",
-        "/WJetsToLNu_HT-2500ToInf_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18DRPremix-102X_upgrade2018_realistic_v15-v1/AODSIM",
-    ],
-)
+DATASET_GRP = json.load(open("backgroundlist.json"))
 
 
 # https://stackoverflow.com/questions/1094841/reusable-library-to-get-human-readable-version-of-file-size
@@ -50,7 +26,7 @@ def main():
     print("Generated at {}".format(time.ctime()))
     print("=" * 100, end="\n\n")
     fmt = "{:135}{:>10}{:>10}{:>10}  {}"
-    print(fmt.format("Dataset", "#Events", "#Files", "size", "sites"))
+    print(fmt.format("Dataset", "#Events", "#Files", "size", "sites(disk only)"))
     for categ, datasets in DATASET_GRP.items():
 
         print("+++ ", categ, " +++")
@@ -63,14 +39,30 @@ def main():
                 dasres = subprocess.check_output(shlex.split((dasquery)))
                 dasres = json.loads(dasres)[0]
 
-                dasquery_site = 'dasgoclient -query="site dataset={}"'.format(ds)
+                dasquery_site = 'dasgoclient -query="site dataset={}" -json'.format(ds)
                 dasres_site = subprocess.check_output(shlex.split((dasquery_site)))
+                dasres_site = json.loads(dasres_site.decode())
 
                 nFiles = dasres["summary"][0]["num_file"]
                 nEvents = dasres["summary"][0]["num_event"]
                 fileSize = dasres["summary"][0]["file_size"]
-                sites = [s.decode() for s in dasres_site.split()]
-            except Exception:
+                sites = []
+                for siteinfo in dasres_site:
+                    _service = siteinfo["das"]["services"][0]
+                    _sitename = siteinfo["site"][0]["name"]
+                    if _sitename.startswith("T0"): continue
+                    if _sitename.startswith("T1") and not _sitename.endswith("Disk"): continue
+                    if _sitename not in sites:
+                        sites.append(_sitename)
+                    if _service.startswith("combined"):
+                        if siteinfo["site"][0]["block_completion"] != "100.00%" or \
+                            siteinfo["site"][0]["block_fraction"] != "100.00%" or \
+                            siteinfo["site"][0]["dataset_fraction"] != "100.00%" or \
+                            siteinfo["site"][0]["replica_fraction"] != "100.00%":
+                            if _sitename in sites:
+                                sites.remove(_sitename)
+
+            except Exception as e:
                 ds += " **"
             print(fmt.format(ds, nEvents, nFiles, sizeof_fmt(fileSize), sites))
         print("-" * 160)
