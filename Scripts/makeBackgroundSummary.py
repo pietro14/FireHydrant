@@ -27,6 +27,7 @@ def main():
     print("=" * 100, end="\n\n")
     fmt = "{:135}{:>10}{:>10}{:>10}  {}"
     print(fmt.format("Dataset", "#Events", "#Files", "size", "sites(disk only)"))
+    starttime = time.time()
     for categ, datasets in DATASET_GRP.items():
 
         print("+++ ", categ, " +++")
@@ -69,6 +70,7 @@ def main():
     sys.stdout.close()
     sys.stdout = sys.__stdout__
 
+    print("--> took {:.3f}s".format(time.time()-starttime))
     print("Write summary at ", OUTPUT_FILE)
     print("Please visit")
     print("\thttp://home.fnal.gov/~wsi/public/lpcdm/backgroundsummary.txt")
