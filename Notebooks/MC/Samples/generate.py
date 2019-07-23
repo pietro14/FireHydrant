@@ -132,7 +132,10 @@ BKG_XSEC = dict(
 
 
 EOSPATH_SIG = '/store/group/lpcmetx/SIDM/ffNtuple/2018/CRAB_PrivateMC/' # private signal MC
-
+EOSPATH_SIG2 = {
+    "4mu": "/store/group/lpcmetx/SIDM/ffNtuple/2018/SIDM_XXTo2ATo4Mu",
+    "2mu2e": "/store/group/lpcmetx/SIDM/ffNtuple/2018/SIDM_XXTo2ATo2Mu2E",
+}
 
 def generate_background_json():
 
@@ -258,7 +261,8 @@ def generate_signal_json():
     with open('signal_2mu2e.json', 'w') as outf:
         outf.write(json.dumps(json_2mu2e, indent=4))
 
-
+def generate_signal_json2():
+    
 
 if __name__ == "__main__":
 
