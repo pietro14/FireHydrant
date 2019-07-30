@@ -31,6 +31,7 @@ def main():
         starttime = time.time()
         starttimec = time.time()
 
+        print('='*60)
         print('**', time.asctime())
         for categ, datasets in DATASET_GRP.items():
 
@@ -79,7 +80,7 @@ def main():
             print("--> took {:.3f}s".format(time.time() - starttimec))
             starttimec = time.time()
 
-    print('_'*45)
+    print('_'*60)
     print("--> took {:.3f}s".format(time.time() - starttime))
     print("Write summary at ", OUTPUT_FILE)
     print("Please visit")
