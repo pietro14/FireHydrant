@@ -22,55 +22,65 @@ def sizeof_fmt(num, suffix="B"):
 
 def main():
 
-    sys.stdout = open(OUTPUT_FILE, "w")
-    print("Generated at {}".format(time.ctime()))
-    print("=" * 100, end="\n\n")
-    fmt = "{:135}{:>10}{:>10}{:>10}  {}"
-    print(fmt.format("Dataset", "#Events", "#Files", "size", "sites(disk only)"))
-    starttime = time.time()
-    for categ, datasets in DATASET_GRP.items():
+    with open(OUTPUT_FILE, "w") as outf:
+        outf.write("Generated at {}\n".format(time.ctime()))
+        outf.write("=" * 100 + "\n\n")
+        fmt = "{:145}{:>10}{:>10}{:>10}  {}"
+        outf.write(fmt.format("Dataset", "#Events", "#Files", "size", "sites(disk only)") + "\n")
 
-        print("+++ ", categ, " +++")
-        print("-" * 160)
-        for ds in datasets:
-            nFiles, nEvents, fileSize = (-1, -1, -1)
-            sites = []
-            try:
-                dasquery = 'dasgoclient -query="summary dataset={}" -json'.format(ds)
-                dasres = subprocess.check_output(shlex.split((dasquery)))
-                dasres = json.loads(dasres)[0]
+        starttime = time.time()
+        starttimec = time.time()
 
-                dasquery_site = 'dasgoclient -query="site dataset={}" -json'.format(ds)
-                dasres_site = subprocess.check_output(shlex.split((dasquery_site)))
-                dasres_site = json.loads(dasres_site.decode())
+        print('**', time.asctime())
+        for categ, datasets in DATASET_GRP.items():
 
-                nFiles = dasres["summary"][0]["num_file"]
-                nEvents = dasres["summary"][0]["num_event"]
-                fileSize = dasres["summary"][0]["file_size"]
+            outf.write(f"+++ {categ} +++\n")
+            print('{:25}'.format(f"+++ {categ} +++ [{len(datasets)}]"), end="\t")
+            outf.write("-" * 160 + "\n")
+            for ds in datasets:
+                nFiles, nEvents, fileSize = (-1, -1, -1)
                 sites = []
-                for siteinfo in dasres_site:
-                    _service = siteinfo["das"]["services"][0]
-                    _sitename = siteinfo["site"][0]["name"]
-                    if _sitename.startswith("T0"): continue
-                    if _sitename.startswith("T1") and not _sitename.endswith("Disk"): continue
-                    if _sitename not in sites:
-                        sites.append(_sitename)
-                    if _service.startswith("combined"):
-                        if siteinfo["site"][0]["block_completion"] != "100.00%" or \
-                            siteinfo["site"][0]["block_fraction"] != "100.00%" or \
-                            siteinfo["site"][0]["dataset_fraction"] != "100.00%" or \
-                            siteinfo["site"][0]["replica_fraction"] != "100.00%":
-                            if _sitename in sites:
-                                sites.remove(_sitename)
+                try:
+                    dasquery = 'dasgoclient -query="summary dataset={}" -json'.format(ds)
+                    dasres = subprocess.check_output(shlex.split((dasquery)))
+                    dasres = json.loads(dasres)[0]
 
-            except Exception as e:
-                ds += " **"
-            print(fmt.format(ds, nEvents, nFiles, sizeof_fmt(fileSize), sites))
-        print("-" * 160)
-    sys.stdout.close()
-    sys.stdout = sys.__stdout__
+                    dasquery_site = 'dasgoclient -query="site dataset={}" -json'.format(ds)
+                    dasres_site = subprocess.check_output(shlex.split((dasquery_site)))
+                    dasres_site = json.loads(dasres_site.decode())
 
-    print("--> took {:.3f}s".format(time.time()-starttime))
+                    nFiles = dasres["summary"][0]["num_file"]
+                    nEvents = dasres["summary"][0]["num_event"]
+                    fileSize = dasres["summary"][0]["file_size"]
+                    sites = []
+                    for siteinfo in dasres_site:
+                        _service = siteinfo["das"]["services"][0]
+                        _sitename = siteinfo["site"][0]["name"]
+                        if _sitename.startswith("T0"):
+                            continue
+                        if _sitename.startswith("T1") and not _sitename.endswith("Disk"):
+                            continue
+                        if _sitename not in sites:
+                            sites.append(_sitename)
+                        if _service.startswith("combined"):
+                            if (
+                                siteinfo["site"][0]["block_completion"] != "100.00%"
+                                or siteinfo["site"][0]["block_fraction"] != "100.00%"
+                                or siteinfo["site"][0]["dataset_fraction"] != "100.00%"
+                                or siteinfo["site"][0]["replica_fraction"] != "100.00%"
+                            ):
+                                if _sitename in sites:
+                                    sites.remove(_sitename)
+
+                except Exception:
+                    ds += " **"
+                outf.write(fmt.format(ds, nEvents, nFiles, sizeof_fmt(fileSize), sites) + "\n")
+            outf.write("-" * 160 + "\n")
+            print("--> took {:.3f}s".format(time.time() - starttimec))
+            starttimec = time.time()
+
+    print('_'*45)
+    print("--> took {:.3f}s".format(time.time() - starttime))
     print("Write summary at ", OUTPUT_FILE)
     print("Please visit")
     print("\thttp://home.fnal.gov/~wsi/public/lpcdm/backgroundsummary.txt")
