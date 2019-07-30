@@ -12,4 +12,5 @@ MetFilters = [
     "metfilters_EcalBadCalibFilter",
     "metfilters_HBHENoiseFilter",
     "metfilters_HBHEIsoNoiseFilter",
+    "metfilters_TriggerObjectMatchingFilter",
 ]
