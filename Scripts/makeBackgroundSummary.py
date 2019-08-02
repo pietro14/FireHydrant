@@ -54,6 +54,7 @@ def main():
                     nEvents = dasres["summary"][0]["num_event"]
                     fileSize = dasres["summary"][0]["file_size"]
                     sites = []
+                    transfering = {}
                     for siteinfo in dasres_site:
                         _service = siteinfo["das"]["services"][0]
                         _sitename = siteinfo["site"][0]["name"]
@@ -72,10 +73,16 @@ def main():
                             ):
                                 if _sitename in sites:
                                     sites.remove(_sitename)
+                                transfering[_sitename] = (siteinfo["site"][0]["block_fraction"], siteinfo["site"][0]["dataset_fraction"])
 
                 except Exception:
                     ds += " **"
-                outf.write(fmt.format(ds, nEvents, nFiles, sizeof_fmt(fileSize), sites) + "\n")
+                # if none available on disk, show transfer fraction if any
+                if not sites and transfering:
+                    sitesinfo = str(sites)+str(transfering)
+                else:
+                    sitesinfo = str(sites)
+                outf.write(fmt.format(ds, nEvents, nFiles, sizeof_fmt(fileSize), sitesinfo) + "\n")
             outf.write("-" * 160 + "\n")
             print("--> took {:.3f}s".format(time.time() - starttimec))
             starttimec = time.time()
