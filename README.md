@@ -35,7 +35,7 @@ jupyter lab --no-browser --port=8888 # replace by your favourite port
     - (you need to type `ENTER` or `yes` at some point, add conda sourcing to your `.bashrc` or equivalent)
     - a quick [reference](https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html) on managing environments with `conda`.
 
-2. Edit/create .bash_profile file
+2. Edit/create .bash_profile file (for Bash users only)
     
     - open `~/.bash_profile` 
     - add the line: `source ~/.bashrc`
